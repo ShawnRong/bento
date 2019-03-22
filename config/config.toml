@@ -1,0 +1,14 @@
+[site]
+name = "Bento blog"
+author = "ShawnRong"
+url = "bento.dev"
+email = "rongshawn@gmail.com"
+domain = ":8080"
+debug = true
+
+[db]
+host = "127.0.0.1"
+port = 3306
+database = "bento"
+username = "root"
+password = "pass"
