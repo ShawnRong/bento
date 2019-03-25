@@ -18,7 +18,7 @@ func (u UserController) Retrieve(c *gin.Context) {
 	db.GetDB().First(&user, c.Param("id"))
 	c.JSON(http.StatusOK, gin.H{
 		"status": "success",
-		"user":   user,
+		"users":  user,
 	})
 }
 

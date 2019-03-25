@@ -1,0 +1,23 @@
+schema: ./graphql/schema/schema.graphql
+
+exec:
+  filename: ./graphql/generated/generated.go
+  package: generated
+
+resolver:
+  filename: ./graphql/resolver/resolver.go
+  type: Resolver
+
+models:
+  User:
+    model: github.com/ShawnRong/bento/models.User
+  Tag:
+    model: github.com/ShawnRong/bento/models.Tag
+  Article:
+    model: github.com/ShawnRong/bento/models.Article
+  Comment:
+    model: github.com/ShawnRong/bento/models.Comment
+  ID:
+    model:
+      - github.com/99designs/gqlgen/graphql.IntID
+      - github.com/99designs/gqlgen/graphql.ID

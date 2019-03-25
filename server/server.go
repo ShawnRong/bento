@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// Init Server
 func Init() {
 	c := config.GetConfig()
 	if !c.GetBool("site.debug") {

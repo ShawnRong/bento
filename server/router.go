@@ -18,6 +18,13 @@ func NewRouter() *gin.Engine {
 	// Serve frontend views folder
 	router.Use(static.Serve("/", static.LocalFile("./app/build/", true)))
 
+	// Graphql router
+	router.POST("/query", controllers.GraphqlHandler())
+	gql := router.Group("graphql")
+	{
+		gql.GET("/", controllers.PlaygroundHandler())
+	}
+
 	v1 := router.Group("v1")
 	{
 		userGroup := v1.Group("user")

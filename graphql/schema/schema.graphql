@@ -1,0 +1,43 @@
+type User {
+    id: ID!
+    email: String!
+    name: String!
+    role: String!
+    active: String!
+    password: String!
+    createdat: String!
+    updatedat: String!
+    deletedat: String!
+}
+
+type Tag {
+    id: ID!
+    name: String!
+    createdat: String!
+    updatedat: String!
+    deletedat: String!
+}
+
+type Article {
+    id: ID!
+    content: String!
+    user: User!
+    createdat: String!
+    updatedat: String!
+    deletedat: String!
+}
+
+type Comment {
+   id: ID!
+   content: String!
+   user: User!
+   createdat: String!
+   updatedat: String!
+   deletedat: String!
+}
+
+type Query {
+    User(limit: Int = 25, offset: Int = 0): [User!]!
+}
+
+scalar Timestamp

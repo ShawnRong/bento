@@ -19,7 +19,7 @@ PID=/tmp/.$(PROJECTNAME).pid
 
 ## start: Start in development mode. Auto-starts when code changes.
 start:
-	@realize start --run
+	@~/.air
 #	bash -c "trap 'make stop' EXIT; $(MAKE) compile start-server watch run='make compile start-server'"
 
 ## stop: Stop development mode.
