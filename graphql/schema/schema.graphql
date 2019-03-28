@@ -5,39 +5,81 @@ type User {
     role: String!
     active: String!
     password: String!
-    createdat: String!
-    updatedat: String!
-    deletedat: String!
+    created_at: String!
+    updated_at: String!
+    deleted_at: String!
+    articles: [Article!]
+    comments: [Comment!]
 }
 
 type Tag {
     id: ID!
     name: String!
-    createdat: String!
-    updatedat: String!
-    deletedat: String!
+    created_at: String!
+    updated_at: String!
+    deleted_at: String!
+    articles: [Article!]!
 }
 
 type Article {
     id: ID!
     content: String!
     user: User!
-    createdat: String!
-    updatedat: String!
-    deletedat: String!
+    created_at: String!
+    updated_at: String!
+    deleted_at: String!
+    tags: [Tag!]!
+    comments: [Comment!]
 }
 
 type Comment {
    id: ID!
    content: String!
    user: User!
-   createdat: String!
-   updatedat: String!
-   deletedat: String!
+   created_at: String!
+   updated_at: String!
+   deleted_at: String!
+   article: Article!
 }
 
 type Query {
-    User(limit: Int = 25, offset: Int = 0): [User!]!
+    Users(limit: Int = 25, offset: Int = 0): [User!]!
+    Me(id: Int!): User!
+    Article(id: ID = 0, tag: String = ""): Article!
+    Articles(limit: Int = 25, offset: Int = 0): [Article!]!
+    Tags: [Tag!]!
 }
 
-scalar Timestamp
+input NewUser {
+    email: String!
+    name: String!
+    password: String!
+}
+
+input NewArticle {
+    content: String!
+    userId: ID!
+    tags: [ID!]
+}
+
+input NewTag {
+    name: String!
+}
+
+input NewComment {
+    content: String!
+    userId: ID!
+    articleId: ID!
+}
+
+type Mutation {
+    register (input: NewUser!): User
+    updateProfile (input: NewUser!): User
+    createArticle (input: NewArticle!): Article
+    deleteArticle(id: ID!): Article
+    updateArticle (input: NewArticle!): Article
+    createTag (input: NewTag!): Tag
+    deleteTag(id: ID!): Tag
+    createComment (input: NewComment!): Comment
+    deleteComment(id: ID!): Comment
+}

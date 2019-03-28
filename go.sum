@@ -169,6 +169,7 @@ github.com/ugorji/go/codec v0.0.0-20190316192920-e2bddce071ad h1:Zu1a3eNI3eJefas
 github.com/ugorji/go/codec v0.0.0-20190316192920-e2bddce071ad/go.mod h1:iT03XoTwV7xq/+UGwKO3UbC1nNNlopQiY61beSdrtOA=
 github.com/urfave/cli v1.20.0 h1:fDqGv3UG/4jbVl/QkFwEdddtEDjh/5Ov6X+0B/3bPaw=
 github.com/urfave/cli v1.20.0/go.mod h1:70zkFmudgCuE/ngEzBv17Jvp/497gISqfk5gWijbERA=
+github.com/vektah/dataloaden v0.2.0 h1:lhynDrG7c8mNLahboCo0Wq82tMjmu5yOUv2ds/tBmss=
 github.com/vektah/dataloaden v0.2.0/go.mod h1:vxM6NuRlgiR0M6wbVTJeKp9vQIs81ZMfCYO+4yq/jbE=
 github.com/vektah/gqlparser v1.1.2 h1:ZsyLGn7/7jDNI+y4SEhI4yAxRChlv15pUHMjijT+e68=
 github.com/vektah/gqlparser v1.1.2/go.mod h1:1ycwN7Ij5njmMkPPAOaRFY4rET2Enx7IkVv3vaXspKw=

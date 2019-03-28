@@ -4,6 +4,10 @@ exec:
   filename: ./graphql/generated/generated.go
   package: generated
 
+model:
+  filename: ./models/models_gen.go
+  package: models
+
 resolver:
   filename: ./graphql/resolver/resolver.go
   type: Resolver
