@@ -5,9 +5,9 @@ type User {
     role: String!
     active: String!
     password: String!
-    created_at: String!
-    updated_at: String!
-    deleted_at: String!
+    created_at: Time!
+    updated_at: Time!
+    deleted_at: Time!
     articles: [Article!]
     comments: [Comment!]
 }
@@ -15,9 +15,9 @@ type User {
 type Tag {
     id: ID!
     name: String!
-    created_at: String!
-    updated_at: String!
-    deleted_at: String!
+    created_at: Time!
+    updated_at: Time!
+    deleted_at: Time!
     articles: [Article!]!
 }
 
@@ -25,9 +25,9 @@ type Article {
     id: ID!
     content: String!
     user: User!
-    created_at: String!
-    updated_at: String!
-    deleted_at: String!
+    created_at: Time!
+    updated_at: Time!
+    deleted_at: Time!
     tags: [Tag!]!
     comments: [Comment!]
 }
@@ -36,9 +36,9 @@ type Comment {
    id: ID!
    content: String!
    user: User!
-   created_at: String!
-   updated_at: String!
-   deleted_at: String!
+   created_at: Time!
+   updated_at: Time!
+   deleted_at: Time!
    article: Article!
 }
 
@@ -56,14 +56,33 @@ input NewUser {
     password: String!
 }
 
+input UpdateUser {
+    id: ID!
+    email: String
+    name: String
+    password: String
+}
+
 input NewArticle {
     content: String!
     userId: ID!
     tags: [ID!]
 }
 
+input UpdateArticle {
+    id: ID!
+    content: String
+    userId: ID
+    tags: [ID]
+}
+
 input NewTag {
     name: String!
+}
+
+input UpdateTag {
+    id: ID!
+    name: String
 }
 
 input NewComment {
@@ -72,14 +91,25 @@ input NewComment {
     articleId: ID!
 }
 
+input UpdateComment {
+    id: ID!
+    content: String
+    userId: ID
+    articleId: ID
+}
+
 type Mutation {
     register (input: NewUser!): User
-    updateProfile (input: NewUser!): User
+    updateProfile (input: UpdateUser!): User
     createArticle (input: NewArticle!): Article
     deleteArticle(id: ID!): Article
-    updateArticle (input: NewArticle!): Article
+    updateArticle (input: UpdateArticle!): Article
     createTag (input: NewTag!): Tag
     deleteTag(id: ID!): Tag
+    updateTag(input: UpdateTag!): Tag
     createComment (input: NewComment!): Comment
     deleteComment(id: ID!): Comment
+    updateComment(input: UpdateComment!): Comment
 }
+
+scalar Time

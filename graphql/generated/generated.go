@@ -8,6 +8,7 @@ import (
 	"errors"
 	"strconv"
 	"sync"
+	"time"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
@@ -75,8 +76,10 @@ type ComplexityRoot struct {
 		DeleteComment func(childComplexity int, id int) int
 		DeleteTag     func(childComplexity int, id int) int
 		Register      func(childComplexity int, input models.NewUser) int
-		UpdateArticle func(childComplexity int, input models.NewArticle) int
-		UpdateProfile func(childComplexity int, input models.NewUser) int
+		UpdateArticle func(childComplexity int, input models.UpdateArticle) int
+		UpdateComment func(childComplexity int, input models.UpdateComment) int
+		UpdateProfile func(childComplexity int, input models.UpdateUser) int
+		UpdateTag     func(childComplexity int, input models.UpdateTag) int
 	}
 
 	Query struct {
@@ -112,32 +115,25 @@ type ComplexityRoot struct {
 }
 
 type ArticleResolver interface {
-	ID(ctx context.Context, obj *models.Article) (int, error)
-
 	User(ctx context.Context, obj *models.Article) (*models.User, error)
-	CreatedAt(ctx context.Context, obj *models.Article) (string, error)
-	UpdatedAt(ctx context.Context, obj *models.Article) (string, error)
-	DeletedAt(ctx context.Context, obj *models.Article) (string, error)
 }
 type CommentResolver interface {
-	ID(ctx context.Context, obj *models.Comment) (int, error)
-
 	User(ctx context.Context, obj *models.Comment) (*models.User, error)
-	CreatedAt(ctx context.Context, obj *models.Comment) (string, error)
-	UpdatedAt(ctx context.Context, obj *models.Comment) (string, error)
-	DeletedAt(ctx context.Context, obj *models.Comment) (string, error)
+
 	Article(ctx context.Context, obj *models.Comment) (*models.Article, error)
 }
 type MutationResolver interface {
 	Register(ctx context.Context, input models.NewUser) (*models.User, error)
-	UpdateProfile(ctx context.Context, input models.NewUser) (*models.User, error)
+	UpdateProfile(ctx context.Context, input models.UpdateUser) (*models.User, error)
 	CreateArticle(ctx context.Context, input models.NewArticle) (*models.Article, error)
 	DeleteArticle(ctx context.Context, id int) (*models.Article, error)
-	UpdateArticle(ctx context.Context, input models.NewArticle) (*models.Article, error)
+	UpdateArticle(ctx context.Context, input models.UpdateArticle) (*models.Article, error)
 	CreateTag(ctx context.Context, input models.NewTag) (*models.Tag, error)
 	DeleteTag(ctx context.Context, id int) (*models.Tag, error)
+	UpdateTag(ctx context.Context, input models.UpdateTag) (*models.Tag, error)
 	CreateComment(ctx context.Context, input models.NewComment) (*models.Comment, error)
 	DeleteComment(ctx context.Context, id int) (*models.Comment, error)
+	UpdateComment(ctx context.Context, input models.UpdateComment) (*models.Comment, error)
 }
 type QueryResolver interface {
 	Users(ctx context.Context, limit *int, offset *int) ([]models.User, error)
@@ -147,21 +143,10 @@ type QueryResolver interface {
 	Tags(ctx context.Context) ([]models.Tag, error)
 }
 type TagResolver interface {
-	ID(ctx context.Context, obj *models.Tag) (int, error)
-
-	CreatedAt(ctx context.Context, obj *models.Tag) (string, error)
-	UpdatedAt(ctx context.Context, obj *models.Tag) (string, error)
-	DeletedAt(ctx context.Context, obj *models.Tag) (string, error)
 	Articles(ctx context.Context, obj *models.Tag) ([]models.Article, error)
 }
 type UserResolver interface {
-	ID(ctx context.Context, obj *models.User) (int, error)
-
 	Active(ctx context.Context, obj *models.User) (string, error)
-
-	CreatedAt(ctx context.Context, obj *models.User) (string, error)
-	UpdatedAt(ctx context.Context, obj *models.User) (string, error)
-	DeletedAt(ctx context.Context, obj *models.User) (string, error)
 
 	Comments(ctx context.Context, obj *models.User) ([]models.Comment, error)
 }
@@ -380,7 +365,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateArticle(childComplexity, args["input"].(models.NewArticle)), true
+		return e.complexity.Mutation.UpdateArticle(childComplexity, args["input"].(models.UpdateArticle)), true
+
+	case "Mutation.UpdateComment":
+		if e.complexity.Mutation.UpdateComment == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateComment_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateComment(childComplexity, args["input"].(models.UpdateComment)), true
 
 	case "Mutation.UpdateProfile":
 		if e.complexity.Mutation.UpdateProfile == nil {
@@ -392,7 +389,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateProfile(childComplexity, args["input"].(models.NewUser)), true
+		return e.complexity.Mutation.UpdateProfile(childComplexity, args["input"].(models.UpdateUser)), true
+
+	case "Mutation.UpdateTag":
+		if e.complexity.Mutation.UpdateTag == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateTag_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateTag(childComplexity, args["input"].(models.UpdateTag)), true
 
 	case "Query.Article":
 		if e.complexity.Query.Article == nil {
@@ -652,9 +661,9 @@ var parsedSchema = gqlparser.MustLoadSchema(
     role: String!
     active: String!
     password: String!
-    created_at: String!
-    updated_at: String!
-    deleted_at: String!
+    created_at: Time!
+    updated_at: Time!
+    deleted_at: Time!
     articles: [Article!]
     comments: [Comment!]
 }
@@ -662,9 +671,9 @@ var parsedSchema = gqlparser.MustLoadSchema(
 type Tag {
     id: ID!
     name: String!
-    created_at: String!
-    updated_at: String!
-    deleted_at: String!
+    created_at: Time!
+    updated_at: Time!
+    deleted_at: Time!
     articles: [Article!]!
 }
 
@@ -672,9 +681,9 @@ type Article {
     id: ID!
     content: String!
     user: User!
-    created_at: String!
-    updated_at: String!
-    deleted_at: String!
+    created_at: Time!
+    updated_at: Time!
+    deleted_at: Time!
     tags: [Tag!]!
     comments: [Comment!]
 }
@@ -683,9 +692,9 @@ type Comment {
    id: ID!
    content: String!
    user: User!
-   created_at: String!
-   updated_at: String!
-   deleted_at: String!
+   created_at: Time!
+   updated_at: Time!
+   deleted_at: Time!
    article: Article!
 }
 
@@ -703,14 +712,33 @@ input NewUser {
     password: String!
 }
 
+input UpdateUser {
+    id: ID!
+    email: String
+    name: String
+    password: String
+}
+
 input NewArticle {
     content: String!
     userId: ID!
     tags: [ID!]
 }
 
+input UpdateArticle {
+    id: ID!
+    content: String
+    userId: ID
+    tags: [ID]
+}
+
 input NewTag {
     name: String!
+}
+
+input UpdateTag {
+    id: ID!
+    name: String
 }
 
 input NewComment {
@@ -719,18 +747,28 @@ input NewComment {
     articleId: ID!
 }
 
+input UpdateComment {
+    id: ID!
+    content: String
+    userId: ID
+    articleId: ID
+}
+
 type Mutation {
     register (input: NewUser!): User
-    updateProfile (input: NewUser!): User
+    updateProfile (input: UpdateUser!): User
     createArticle (input: NewArticle!): Article
     deleteArticle(id: ID!): Article
-    updateArticle (input: NewArticle!): Article
+    updateArticle (input: UpdateArticle!): Article
     createTag (input: NewTag!): Tag
     deleteTag(id: ID!): Tag
+    updateTag(input: UpdateTag!): Tag
     createComment (input: NewComment!): Comment
     deleteComment(id: ID!): Comment
+    updateComment(input: UpdateComment!): Comment
 }
-`},
+
+scalar Time`},
 )
 
 // endregion ************************** generated!.gotpl **************************
@@ -838,9 +876,23 @@ func (ec *executionContext) field_Mutation_register_args(ctx context.Context, ra
 func (ec *executionContext) field_Mutation_updateArticle_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 models.NewArticle
+	var arg0 models.UpdateArticle
 	if tmp, ok := rawArgs["input"]; ok {
-		arg0, err = ec.unmarshalNNewArticle2githubᚗcomᚋShawnRongᚋbentoᚋmodelsᚐNewArticle(ctx, tmp)
+		arg0, err = ec.unmarshalNUpdateArticle2githubᚗcomᚋShawnRongᚋbentoᚋmodelsᚐUpdateArticle(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateComment_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 models.UpdateComment
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNUpdateComment2githubᚗcomᚋShawnRongᚋbentoᚋmodelsᚐUpdateComment(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -852,9 +904,23 @@ func (ec *executionContext) field_Mutation_updateArticle_args(ctx context.Contex
 func (ec *executionContext) field_Mutation_updateProfile_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 models.NewUser
+	var arg0 models.UpdateUser
 	if tmp, ok := rawArgs["input"]; ok {
-		arg0, err = ec.unmarshalNNewUser2githubᚗcomᚋShawnRongᚋbentoᚋmodelsᚐNewUser(ctx, tmp)
+		arg0, err = ec.unmarshalNUpdateUser2githubᚗcomᚋShawnRongᚋbentoᚋmodelsᚐUpdateUser(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateTag_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 models.UpdateTag
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNUpdateTag2githubᚗcomᚋShawnRongᚋbentoᚋmodelsᚐUpdateTag(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -996,13 +1062,13 @@ func (ec *executionContext) _Article_id(ctx context.Context, field graphql.Colle
 		Object:   "Article",
 		Field:    field,
 		Args:     nil,
-		IsMethod: true,
+		IsMethod: false,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Article().ID(rctx, obj)
+		return obj.ID, nil
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -1077,13 +1143,13 @@ func (ec *executionContext) _Article_created_at(ctx context.Context, field graph
 		Object:   "Article",
 		Field:    field,
 		Args:     nil,
-		IsMethod: true,
+		IsMethod: false,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Article().CreatedAt(rctx, obj)
+		return obj.CreatedAt, nil
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -1091,10 +1157,10 @@ func (ec *executionContext) _Article_created_at(ctx context.Context, field graph
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(time.Time)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Article_updated_at(ctx context.Context, field graphql.CollectedField, obj *models.Article) graphql.Marshaler {
@@ -1104,13 +1170,13 @@ func (ec *executionContext) _Article_updated_at(ctx context.Context, field graph
 		Object:   "Article",
 		Field:    field,
 		Args:     nil,
-		IsMethod: true,
+		IsMethod: false,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Article().UpdatedAt(rctx, obj)
+		return obj.UpdatedAt, nil
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -1118,10 +1184,10 @@ func (ec *executionContext) _Article_updated_at(ctx context.Context, field graph
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(time.Time)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Article_deleted_at(ctx context.Context, field graphql.CollectedField, obj *models.Article) graphql.Marshaler {
@@ -1131,13 +1197,13 @@ func (ec *executionContext) _Article_deleted_at(ctx context.Context, field graph
 		Object:   "Article",
 		Field:    field,
 		Args:     nil,
-		IsMethod: true,
+		IsMethod: false,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Article().DeletedAt(rctx, obj)
+		return obj.DeletedAt, nil
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -1145,10 +1211,10 @@ func (ec *executionContext) _Article_deleted_at(ctx context.Context, field graph
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*time.Time)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNTime2ᚖtimeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Article_tags(ctx context.Context, field graphql.CollectedField, obj *models.Article) graphql.Marshaler {
@@ -1209,13 +1275,13 @@ func (ec *executionContext) _Comment_id(ctx context.Context, field graphql.Colle
 		Object:   "Comment",
 		Field:    field,
 		Args:     nil,
-		IsMethod: true,
+		IsMethod: false,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Comment().ID(rctx, obj)
+		return obj.ID, nil
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -1290,13 +1356,13 @@ func (ec *executionContext) _Comment_created_at(ctx context.Context, field graph
 		Object:   "Comment",
 		Field:    field,
 		Args:     nil,
-		IsMethod: true,
+		IsMethod: false,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Comment().CreatedAt(rctx, obj)
+		return obj.CreatedAt, nil
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -1304,10 +1370,10 @@ func (ec *executionContext) _Comment_created_at(ctx context.Context, field graph
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(time.Time)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Comment_updated_at(ctx context.Context, field graphql.CollectedField, obj *models.Comment) graphql.Marshaler {
@@ -1317,13 +1383,13 @@ func (ec *executionContext) _Comment_updated_at(ctx context.Context, field graph
 		Object:   "Comment",
 		Field:    field,
 		Args:     nil,
-		IsMethod: true,
+		IsMethod: false,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Comment().UpdatedAt(rctx, obj)
+		return obj.UpdatedAt, nil
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -1331,10 +1397,10 @@ func (ec *executionContext) _Comment_updated_at(ctx context.Context, field graph
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(time.Time)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Comment_deleted_at(ctx context.Context, field graphql.CollectedField, obj *models.Comment) graphql.Marshaler {
@@ -1344,13 +1410,13 @@ func (ec *executionContext) _Comment_deleted_at(ctx context.Context, field graph
 		Object:   "Comment",
 		Field:    field,
 		Args:     nil,
-		IsMethod: true,
+		IsMethod: false,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Comment().DeletedAt(rctx, obj)
+		return obj.DeletedAt, nil
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -1358,10 +1424,10 @@ func (ec *executionContext) _Comment_deleted_at(ctx context.Context, field graph
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*time.Time)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNTime2ᚖtimeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Comment_article(ctx context.Context, field graphql.CollectedField, obj *models.Comment) graphql.Marshaler {
@@ -1442,7 +1508,7 @@ func (ec *executionContext) _Mutation_updateProfile(ctx context.Context, field g
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateProfile(rctx, args["input"].(models.NewUser))
+		return ec.resolvers.Mutation().UpdateProfile(rctx, args["input"].(models.UpdateUser))
 	})
 	if resTmp == nil {
 		return graphql.Null
@@ -1535,7 +1601,7 @@ func (ec *executionContext) _Mutation_updateArticle(ctx context.Context, field g
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateArticle(rctx, args["input"].(models.NewArticle))
+		return ec.resolvers.Mutation().UpdateArticle(rctx, args["input"].(models.UpdateArticle))
 	})
 	if resTmp == nil {
 		return graphql.Null
@@ -1608,6 +1674,37 @@ func (ec *executionContext) _Mutation_deleteTag(ctx context.Context, field graph
 	return ec.marshalOTag2ᚖgithubᚗcomᚋShawnRongᚋbentoᚋmodelsᚐTag(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_updateTag(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateTag_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateTag(rctx, args["input"].(models.UpdateTag))
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.Tag)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOTag2ᚖgithubᚗcomᚋShawnRongᚋbentoᚋmodelsᚐTag(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_createComment(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
@@ -1660,6 +1757,37 @@ func (ec *executionContext) _Mutation_deleteComment(ctx context.Context, field g
 	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().DeleteComment(rctx, args["id"].(int))
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.Comment)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOComment2ᚖgithubᚗcomᚋShawnRongᚋbentoᚋmodelsᚐComment(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_updateComment(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateComment_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateComment(rctx, args["input"].(models.UpdateComment))
 	})
 	if resTmp == nil {
 		return graphql.Null
@@ -1895,13 +2023,13 @@ func (ec *executionContext) _Tag_id(ctx context.Context, field graphql.Collected
 		Object:   "Tag",
 		Field:    field,
 		Args:     nil,
-		IsMethod: true,
+		IsMethod: false,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Tag().ID(rctx, obj)
+		return obj.ID, nil
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -1949,13 +2077,13 @@ func (ec *executionContext) _Tag_created_at(ctx context.Context, field graphql.C
 		Object:   "Tag",
 		Field:    field,
 		Args:     nil,
-		IsMethod: true,
+		IsMethod: false,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Tag().CreatedAt(rctx, obj)
+		return obj.CreatedAt, nil
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -1963,10 +2091,10 @@ func (ec *executionContext) _Tag_created_at(ctx context.Context, field graphql.C
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(time.Time)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Tag_updated_at(ctx context.Context, field graphql.CollectedField, obj *models.Tag) graphql.Marshaler {
@@ -1976,13 +2104,13 @@ func (ec *executionContext) _Tag_updated_at(ctx context.Context, field graphql.C
 		Object:   "Tag",
 		Field:    field,
 		Args:     nil,
-		IsMethod: true,
+		IsMethod: false,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Tag().UpdatedAt(rctx, obj)
+		return obj.UpdatedAt, nil
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -1990,10 +2118,10 @@ func (ec *executionContext) _Tag_updated_at(ctx context.Context, field graphql.C
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(time.Time)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Tag_deleted_at(ctx context.Context, field graphql.CollectedField, obj *models.Tag) graphql.Marshaler {
@@ -2003,13 +2131,13 @@ func (ec *executionContext) _Tag_deleted_at(ctx context.Context, field graphql.C
 		Object:   "Tag",
 		Field:    field,
 		Args:     nil,
-		IsMethod: true,
+		IsMethod: false,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Tag().DeletedAt(rctx, obj)
+		return obj.DeletedAt, nil
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -2017,10 +2145,10 @@ func (ec *executionContext) _Tag_deleted_at(ctx context.Context, field graphql.C
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*time.Time)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNTime2ᚖtimeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Tag_articles(ctx context.Context, field graphql.CollectedField, obj *models.Tag) graphql.Marshaler {
@@ -2057,13 +2185,13 @@ func (ec *executionContext) _User_id(ctx context.Context, field graphql.Collecte
 		Object:   "User",
 		Field:    field,
 		Args:     nil,
-		IsMethod: true,
+		IsMethod: false,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.User().ID(rctx, obj)
+		return obj.ID, nil
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -2219,13 +2347,13 @@ func (ec *executionContext) _User_created_at(ctx context.Context, field graphql.
 		Object:   "User",
 		Field:    field,
 		Args:     nil,
-		IsMethod: true,
+		IsMethod: false,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.User().CreatedAt(rctx, obj)
+		return obj.CreatedAt, nil
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -2233,10 +2361,10 @@ func (ec *executionContext) _User_created_at(ctx context.Context, field graphql.
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(time.Time)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _User_updated_at(ctx context.Context, field graphql.CollectedField, obj *models.User) graphql.Marshaler {
@@ -2246,13 +2374,13 @@ func (ec *executionContext) _User_updated_at(ctx context.Context, field graphql.
 		Object:   "User",
 		Field:    field,
 		Args:     nil,
-		IsMethod: true,
+		IsMethod: false,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.User().UpdatedAt(rctx, obj)
+		return obj.UpdatedAt, nil
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -2260,10 +2388,10 @@ func (ec *executionContext) _User_updated_at(ctx context.Context, field graphql.
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(time.Time)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _User_deleted_at(ctx context.Context, field graphql.CollectedField, obj *models.User) graphql.Marshaler {
@@ -2273,13 +2401,13 @@ func (ec *executionContext) _User_deleted_at(ctx context.Context, field graphql.
 		Object:   "User",
 		Field:    field,
 		Args:     nil,
-		IsMethod: true,
+		IsMethod: false,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.User().DeletedAt(rctx, obj)
+		return obj.DeletedAt, nil
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -2287,10 +2415,10 @@ func (ec *executionContext) _User_deleted_at(ctx context.Context, field graphql.
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*time.Time)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNTime2ᚖtimeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _User_articles(ctx context.Context, field graphql.CollectedField, obj *models.User) graphql.Marshaler {
@@ -3280,6 +3408,138 @@ func (ec *executionContext) unmarshalInputNewUser(ctx context.Context, v interfa
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputUpdateArticle(ctx context.Context, v interface{}) (models.UpdateArticle, error) {
+	var it models.UpdateArticle
+	var asMap = v.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "id":
+			var err error
+			it.ID, err = ec.unmarshalNID2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "content":
+			var err error
+			it.Content, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "userId":
+			var err error
+			it.UserID, err = ec.unmarshalOID2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "tags":
+			var err error
+			it.Tags, err = ec.unmarshalOID2ᚕᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputUpdateComment(ctx context.Context, v interface{}) (models.UpdateComment, error) {
+	var it models.UpdateComment
+	var asMap = v.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "id":
+			var err error
+			it.ID, err = ec.unmarshalNID2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "content":
+			var err error
+			it.Content, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "userId":
+			var err error
+			it.UserID, err = ec.unmarshalOID2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "articleId":
+			var err error
+			it.ArticleID, err = ec.unmarshalOID2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputUpdateTag(ctx context.Context, v interface{}) (models.UpdateTag, error) {
+	var it models.UpdateTag
+	var asMap = v.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "id":
+			var err error
+			it.ID, err = ec.unmarshalNID2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "name":
+			var err error
+			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputUpdateUser(ctx context.Context, v interface{}) (models.UpdateUser, error) {
+	var it models.UpdateUser
+	var asMap = v.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "id":
+			var err error
+			it.ID, err = ec.unmarshalNID2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "email":
+			var err error
+			it.Email, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "name":
+			var err error
+			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "password":
+			var err error
+			it.Password, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -3300,19 +3560,10 @@ func (ec *executionContext) _Article(ctx context.Context, sel ast.SelectionSet, 
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Article")
 		case "id":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Article_id(ctx, field, obj)
-				if res == graphql.Null {
-					invalid = true
-				}
-				return res
-			})
+			out.Values[i] = ec._Article_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		case "content":
 			out.Values[i] = ec._Article_content(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -3333,47 +3584,20 @@ func (ec *executionContext) _Article(ctx context.Context, sel ast.SelectionSet, 
 				return res
 			})
 		case "created_at":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Article_created_at(ctx, field, obj)
-				if res == graphql.Null {
-					invalid = true
-				}
-				return res
-			})
+			out.Values[i] = ec._Article_created_at(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		case "updated_at":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Article_updated_at(ctx, field, obj)
-				if res == graphql.Null {
-					invalid = true
-				}
-				return res
-			})
+			out.Values[i] = ec._Article_updated_at(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		case "deleted_at":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Article_deleted_at(ctx, field, obj)
-				if res == graphql.Null {
-					invalid = true
-				}
-				return res
-			})
+			out.Values[i] = ec._Article_deleted_at(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		case "tags":
 			out.Values[i] = ec._Article_tags(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -3404,19 +3628,10 @@ func (ec *executionContext) _Comment(ctx context.Context, sel ast.SelectionSet, 
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Comment")
 		case "id":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Comment_id(ctx, field, obj)
-				if res == graphql.Null {
-					invalid = true
-				}
-				return res
-			})
+			out.Values[i] = ec._Comment_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		case "content":
 			out.Values[i] = ec._Comment_content(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -3437,47 +3652,20 @@ func (ec *executionContext) _Comment(ctx context.Context, sel ast.SelectionSet, 
 				return res
 			})
 		case "created_at":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Comment_created_at(ctx, field, obj)
-				if res == graphql.Null {
-					invalid = true
-				}
-				return res
-			})
+			out.Values[i] = ec._Comment_created_at(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		case "updated_at":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Comment_updated_at(ctx, field, obj)
-				if res == graphql.Null {
-					invalid = true
-				}
-				return res
-			})
+			out.Values[i] = ec._Comment_updated_at(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		case "deleted_at":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Comment_deleted_at(ctx, field, obj)
-				if res == graphql.Null {
-					invalid = true
-				}
-				return res
-			})
+			out.Values[i] = ec._Comment_deleted_at(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		case "article":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -3532,10 +3720,14 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_createTag(ctx, field)
 		case "deleteTag":
 			out.Values[i] = ec._Mutation_deleteTag(ctx, field)
+		case "updateTag":
+			out.Values[i] = ec._Mutation_updateTag(ctx, field)
 		case "createComment":
 			out.Values[i] = ec._Mutation_createComment(ctx, field)
 		case "deleteComment":
 			out.Values[i] = ec._Mutation_deleteComment(ctx, field)
+		case "updateComment":
+			out.Values[i] = ec._Mutation_updateComment(ctx, field)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -3659,66 +3851,30 @@ func (ec *executionContext) _Tag(ctx context.Context, sel ast.SelectionSet, obj 
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Tag")
 		case "id":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Tag_id(ctx, field, obj)
-				if res == graphql.Null {
-					invalid = true
-				}
-				return res
-			})
+			out.Values[i] = ec._Tag_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		case "name":
 			out.Values[i] = ec._Tag_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
 		case "created_at":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Tag_created_at(ctx, field, obj)
-				if res == graphql.Null {
-					invalid = true
-				}
-				return res
-			})
+			out.Values[i] = ec._Tag_created_at(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		case "updated_at":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Tag_updated_at(ctx, field, obj)
-				if res == graphql.Null {
-					invalid = true
-				}
-				return res
-			})
+			out.Values[i] = ec._Tag_updated_at(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		case "deleted_at":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Tag_deleted_at(ctx, field, obj)
-				if res == graphql.Null {
-					invalid = true
-				}
-				return res
-			})
+			out.Values[i] = ec._Tag_deleted_at(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		case "articles":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -3756,19 +3912,10 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("User")
 		case "id":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._User_id(ctx, field, obj)
-				if res == graphql.Null {
-					invalid = true
-				}
-				return res
-			})
+			out.Values[i] = ec._User_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		case "email":
 			out.Values[i] = ec._User_email(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -3804,47 +3951,20 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 				invalid = true
 			}
 		case "created_at":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._User_created_at(ctx, field, obj)
-				if res == graphql.Null {
-					invalid = true
-				}
-				return res
-			})
+			out.Values[i] = ec._User_created_at(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		case "updated_at":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._User_updated_at(ctx, field, obj)
-				if res == graphql.Null {
-					invalid = true
-				}
-				return res
-			})
+			out.Values[i] = ec._User_updated_at(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		case "deleted_at":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._User_deleted_at(ctx, field, obj)
-				if res == graphql.Null {
-					invalid = true
-				}
-				return res
-			})
+			out.Values[i] = ec._User_deleted_at(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		case "articles":
 			out.Values[i] = ec._User_articles(ctx, field, obj)
 		case "comments":
@@ -4256,6 +4376,54 @@ func (ec *executionContext) marshalNTag2ᚕgithubᚗcomᚋShawnRongᚋbentoᚋmo
 	}
 	wg.Wait()
 	return ret
+}
+
+func (ec *executionContext) unmarshalNTime2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {
+	return graphql.UnmarshalTime(v)
+}
+
+func (ec *executionContext) marshalNTime2timeᚐTime(ctx context.Context, sel ast.SelectionSet, v time.Time) graphql.Marshaler {
+	if v.IsZero() {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return graphql.MarshalTime(v)
+}
+
+func (ec *executionContext) unmarshalNTime2ᚖtimeᚐTime(ctx context.Context, v interface{}) (*time.Time, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalNTime2timeᚐTime(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) marshalNTime2ᚖtimeᚐTime(ctx context.Context, sel ast.SelectionSet, v *time.Time) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec.marshalNTime2timeᚐTime(ctx, sel, *v)
+}
+
+func (ec *executionContext) unmarshalNUpdateArticle2githubᚗcomᚋShawnRongᚋbentoᚋmodelsᚐUpdateArticle(ctx context.Context, v interface{}) (models.UpdateArticle, error) {
+	return ec.unmarshalInputUpdateArticle(ctx, v)
+}
+
+func (ec *executionContext) unmarshalNUpdateComment2githubᚗcomᚋShawnRongᚋbentoᚋmodelsᚐUpdateComment(ctx context.Context, v interface{}) (models.UpdateComment, error) {
+	return ec.unmarshalInputUpdateComment(ctx, v)
+}
+
+func (ec *executionContext) unmarshalNUpdateTag2githubᚗcomᚋShawnRongᚋbentoᚋmodelsᚐUpdateTag(ctx context.Context, v interface{}) (models.UpdateTag, error) {
+	return ec.unmarshalInputUpdateTag(ctx, v)
+}
+
+func (ec *executionContext) unmarshalNUpdateUser2githubᚗcomᚋShawnRongᚋbentoᚋmodelsᚐUpdateUser(ctx context.Context, v interface{}) (models.UpdateUser, error) {
+	return ec.unmarshalInputUpdateUser(ctx, v)
 }
 
 func (ec *executionContext) marshalNUser2githubᚗcomᚋShawnRongᚋbentoᚋmodelsᚐUser(ctx context.Context, sel ast.SelectionSet, v models.User) graphql.Marshaler {
@@ -4683,6 +4851,38 @@ func (ec *executionContext) marshalOID2ᚕint(ctx context.Context, sel ast.Selec
 	ret := make(graphql.Array, len(v))
 	for i := range v {
 		ret[i] = ec.marshalNID2int(ctx, sel, v[i])
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalOID2ᚕᚖint(ctx context.Context, v interface{}) ([]*int, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*int, len(vSlice))
+	for i := range vSlice {
+		res[i], err = ec.unmarshalOID2ᚖint(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOID2ᚕᚖint(ctx context.Context, sel ast.SelectionSet, v []*int) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalOID2ᚖint(ctx, sel, v[i])
 	}
 
 	return ret

@@ -23,3 +23,29 @@ type NewUser struct {
 	Name     string `json:"name"`
 	Password string `json:"password"`
 }
+
+type UpdateArticle struct {
+	ID      int     `json:"id"`
+	Content *string `json:"content"`
+	UserID  *int    `json:"userId"`
+	Tags    []*int  `json:"tags"`
+}
+
+type UpdateComment struct {
+	ID        int     `json:"id"`
+	Content   *string `json:"content"`
+	UserID    *int    `json:"userId"`
+	ArticleID *int    `json:"articleId"`
+}
+
+type UpdateTag struct {
+	ID   int     `json:"id"`
+	Name *string `json:"name"`
+}
+
+type UpdateUser struct {
+	ID       int     `json:"id"`
+	Email    *string `json:"email"`
+	Name     *string `json:"name"`
+	Password *string `json:"password"`
+}

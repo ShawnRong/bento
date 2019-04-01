@@ -1,5 +1,7 @@
 .idea
+.vscode
 .idea/*
+.vscode/*
 config/*.toml
 !config/config.toml
 node_modules/
