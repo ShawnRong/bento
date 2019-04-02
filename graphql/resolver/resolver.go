@@ -7,7 +7,6 @@ import (
 	"github.com/jinzhu/gorm"
 
 	"github.com/ShawnRong/bento/db"
-
 	"github.com/vektah/gqlparser/gqlerror"
 
 	"github.com/ShawnRong/bento/graphql/generated"
@@ -18,44 +17,14 @@ import (
 
 type Resolver struct{}
 
-func (r *Resolver) Article() generated.ArticleResolver {
-	return &articleResolver{r}
-}
-func (r *Resolver) Comment() generated.CommentResolver {
-	return &commentResolver{r}
-}
 func (r *Resolver) Mutation() generated.MutationResolver {
 	return &mutationResolver{r}
 }
 func (r *Resolver) Query() generated.QueryResolver {
 	return &queryResolver{r}
 }
-func (r *Resolver) Tag() generated.TagResolver {
-	return &tagResolver{r}
-}
 func (r *Resolver) User() generated.UserResolver {
 	return &userResolver{r}
-}
-
-type articleResolver struct{ *Resolver }
-
-func (r *articleResolver) User(ctx context.Context, obj *models.Article) (*models.User, error) {
-	var user models.User
-	db.GetDB().Where("id = ?", obj.UserID).Find(&user)
-	return &user, nil
-}
-
-type commentResolver struct{ *Resolver }
-
-func (r *commentResolver) User(ctx context.Context, obj *models.Comment) (*models.User, error) {
-	var user models.User
-	db.GetDB().Where("id = ?", obj.UserID).Find(&user)
-	return &user, nil
-}
-func (r *commentResolver) Article(ctx context.Context, obj *models.Comment) (*models.Article, error) {
-	var article models.Article
-	db.GetDB().Where("id = ?", obj.ArticleID).Find(&article)
-	return &article, nil
 }
 
 type mutationResolver struct{ *Resolver }
@@ -105,7 +74,7 @@ func (r *mutationResolver) CreateArticle(ctx context.Context, input models.NewAr
 	newArticle := models.Article{
 		Content: input.Content,
 		UserID:  uint(input.UserID),
-		Tags:    tags,
+		//Tags:    tags,
 	}
 	if err := db.GetDB().Create(&newArticle).Error; err != nil {
 		return nil, gqlerror.Errorf("db error: %v", err)
@@ -132,7 +101,8 @@ func (r *mutationResolver) UpdateArticle(ctx context.Context, input models.Updat
 	if userID := input.UserID; userID != nil {
 		newArticle.UserID = uint(*userID)
 	}
-	newArticle.Tags = tags
+	//@TODO
+	//newArticle.Tags = tags
 
 	if err := db.GetDB().Model(&article).Where("id = ?", input.ID).Update(&newArticle).Error; err != nil {
 		return nil, gqlerror.Errorf("db error: %v", err)
@@ -164,7 +134,7 @@ func (r *mutationResolver) UpdateTag(ctx context.Context, input models.UpdateTag
 	if err := db.GetDB().Model(&tag).Where("id = ?", input.ID).Update(&updateTag).Error; err != nil {
 		return nil, gqlerror.Errorf("db error: %v", err)
 	}
-	return nil, nil
+	return &tag, nil
 }
 func (r *mutationResolver) CreateComment(ctx context.Context, input models.NewComment) (*models.Comment, error) {
 	newComment := models.Comment{
@@ -207,54 +177,49 @@ type queryResolver struct{ *Resolver }
 
 func (r *queryResolver) Users(ctx context.Context, limit *int, offset *int) ([]models.User, error) {
 	var users []models.User
-	if err := db.GetDB().Find(&users).Error; err != nil {
-		return []models.User{}, gqlerror.Errorf("err: %v", err)
+	if err := db.GetDB().Limit(*limit).Offset(*offset).Find(&users).Error; err != nil {
+		return []models.User{}, gqlerror.Errorf("db error: %v", err)
 	}
 	return users, nil
 }
 func (r *queryResolver) Me(ctx context.Context, id int) (*models.User, error) {
 	var user *models.User
-	db.GetDB().Where("id = ?", id).Find(&user)
+	if err := db.GetDB().Where("id = ?", id).Find(&user).Error; err != nil {
+		return nil, gqlerror.Errorf("db error: %v", err)
+	}
 	return user, nil
 }
 func (r *queryResolver) Article(ctx context.Context, id *int, tag *string) (*models.Article, error) {
 	var article *models.Article
 	if id != nil {
-		db.GetDB().Where("id = ?", id).Find(&article)
+		if err := db.GetDB().Where("id = ?", id).Find(&article).Error; err != nil {
+			return nil, gqlerror.Errorf("db error: %v", err)
+		}
 	}
 	if tag != nil {
-		db.GetDB().Where("name LIKE ?", tag).Find(&article)
+		if err := db.GetDB().Where("name LIKE ?", tag).Find(&article).Error; err != nil {
+			return nil, gqlerror.Errorf("db error: %v", err)
+		}
 	}
 	return article, nil
-
 }
 func (r *queryResolver) Articles(ctx context.Context, limit *int, offset *int) ([]models.Article, error) {
 	var articles []models.Article
-	db.GetDB().Find(&articles)
+	if err := db.GetDB().Limit(*limit).Offset(*offset).Find(&articles).Error; err != nil {
+		return nil, gqlerror.Errorf("db error: %v", err)
+	}
 	return articles, nil
 }
 func (r *queryResolver) Tags(ctx context.Context) ([]models.Tag, error) {
 	var tags []models.Tag
-	db.GetDB().Find(&tags)
+	if err := db.GetDB().Find(&tags).Error; err != nil {
+		return nil, gqlerror.Errorf("db error: %v", err)
+	}
 	return tags, nil
-}
-
-type tagResolver struct{ *Resolver }
-
-func (r *tagResolver) Articles(ctx context.Context, obj *models.Tag) ([]models.Article, error) {
-	var articles []models.Article
-	db.GetDB().Model(&obj).Related(&articles, "Tags")
-	return articles, nil
 }
 
 type userResolver struct{ *Resolver }
 
 func (r *userResolver) Active(ctx context.Context, obj *models.User) (string, error) {
 	return strconv.FormatBool(obj.Active), nil
-}
-
-func (r *userResolver) Comments(ctx context.Context, obj *models.User) ([]models.Comment, error) {
-	var comments []models.Comment
-	db.GetDB().Where("user_id = ?", obj.ID).Find(&comments)
-	return comments, nil
 }

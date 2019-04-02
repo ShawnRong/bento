@@ -3,6 +3,7 @@
 package models
 
 type NewArticle struct {
+	Title   string `json:"title"`
 	Content string `json:"content"`
 	UserID  int    `json:"userId"`
 	Tags    []int  `json:"tags"`

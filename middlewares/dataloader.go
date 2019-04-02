@@ -17,22 +17,26 @@ type ctxKeyType struct{ name string }
 var CtxKey = ctxKeyType{"dataloaderctx"}
 
 type Loaders struct {
-	ArticleLoader *dataloader.ArticleLoader
+	UserLoader *dataloader.UserLoader
 }
 
 func DataLoaderMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		config := dataloader.ArticleLoaderConfig{
+		config := dataloader.UserLoaderConfig{
 			Wait:     1 * time.Millisecond,
 			MaxBatch: 100,
-			Fetch: func(ids []int) ([]*models.Article, []error) {
-				var articles []*models.Article
-				db.GetDB().Find(&articles)
-				return articles, nil
+			Fetch: func(ids []int) ([]*models.User, []error) {
+				var users []*models.User
+				if len(ids) == 1 {
+					db.GetDB().Where("id = ?", ids).Find(users)
+				} else {
+					db.GetDB().Where("id in (?)", ids).Find(users)
+				}
+				return users, nil
 			},
 		}
-		articleLoader := dataloader.NewArticleLoader(config)
-		ctx := context.WithValue(c, CtxKey, &articleLoader)
+		userLoader := dataloader.NewUserLoader(config)
+		ctx := context.WithValue(c, CtxKey, &userLoader)
 		c.Request = c.Request.WithContext(ctx)
 		c.Next()
 	}

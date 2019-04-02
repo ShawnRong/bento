@@ -23,6 +23,7 @@ type Tag {
 
 type Article {
     id: ID!
+    title: String!
     content: String!
     user: User!
     created_at: Time!
@@ -64,6 +65,7 @@ input UpdateUser {
 }
 
 input NewArticle {
+    title: String!
     content: String!
     userId: ID!
     tags: [ID!]

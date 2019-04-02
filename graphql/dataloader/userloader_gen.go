@@ -9,10 +9,10 @@ import (
 	"github.com/ShawnRong/bento/models"
 )
 
-// ArticleLoaderConfig captures the config to create a new ArticleLoader
-type ArticleLoaderConfig struct {
+// UserLoaderConfig captures the config to create a new UserLoader
+type UserLoaderConfig struct {
 	// Fetch is a method that provides the data for the loader
-	Fetch func(keys []int) ([]*models.Article, []error)
+	Fetch func(keys []int) ([]*models.User, []error)
 
 	// Wait is how long wait before sending a batch
 	Wait time.Duration
@@ -21,19 +21,19 @@ type ArticleLoaderConfig struct {
 	MaxBatch int
 }
 
-// NewArticleLoader creates a new ArticleLoader given a fetch, wait, and maxBatch
-func NewArticleLoader(config ArticleLoaderConfig) *ArticleLoader {
-	return &ArticleLoader{
+// NewUserLoader creates a new UserLoader given a fetch, wait, and maxBatch
+func NewUserLoader(config UserLoaderConfig) *UserLoader {
+	return &UserLoader{
 		fetch:    config.Fetch,
 		wait:     config.Wait,
 		maxBatch: config.MaxBatch,
 	}
 }
 
-// ArticleLoader batches and caches requests
-type ArticleLoader struct {
+// UserLoader batches and caches requests
+type UserLoader struct {
 	// this method provides the data for the loader
-	fetch func(keys []int) ([]*models.Article, []error)
+	fetch func(keys []int) ([]*models.User, []error)
 
 	// how long to done before sending a batch
 	wait time.Duration
@@ -44,51 +44,51 @@ type ArticleLoader struct {
 	// INTERNAL
 
 	// lazily created cache
-	cache map[int]*models.Article
+	cache map[int]*models.User
 
 	// the current batch. keys will continue to be collected until timeout is hit,
 	// then everything will be sent to the fetch method and out to the listeners
-	batch *articleBatch
+	batch *userBatch
 
 	// mutex to prevent races
 	mu sync.Mutex
 }
 
-type articleBatch struct {
+type userBatch struct {
 	keys    []int
-	data    []*models.Article
+	data    []*models.User
 	error   []error
 	closing bool
 	done    chan struct{}
 }
 
-// Load a article by key, batching and caching will be applied automatically
-func (l *ArticleLoader) Load(key int) (*models.Article, error) {
+// Load a user by key, batching and caching will be applied automatically
+func (l *UserLoader) Load(key int) (*models.User, error) {
 	return l.LoadThunk(key)()
 }
 
-// LoadThunk returns a function that when called will block waiting for a article.
+// LoadThunk returns a function that when called will block waiting for a user.
 // This method should be used if you want one goroutine to make requests to many
 // different data loaders without blocking until the thunk is called.
-func (l *ArticleLoader) LoadThunk(key int) func() (*models.Article, error) {
+func (l *UserLoader) LoadThunk(key int) func() (*models.User, error) {
 	l.mu.Lock()
 	if it, ok := l.cache[key]; ok {
 		l.mu.Unlock()
-		return func() (*models.Article, error) {
+		return func() (*models.User, error) {
 			return it, nil
 		}
 	}
 	if l.batch == nil {
-		l.batch = &articleBatch{done: make(chan struct{})}
+		l.batch = &userBatch{done: make(chan struct{})}
 	}
 	batch := l.batch
 	pos := batch.keyIndex(l, key)
 	l.mu.Unlock()
 
-	return func() (*models.Article, error) {
+	return func() (*models.User, error) {
 		<-batch.done
 
-		var data *models.Article
+		var data *models.User
 		if pos < len(batch.data) {
 			data = batch.data[pos]
 		}
@@ -113,25 +113,25 @@ func (l *ArticleLoader) LoadThunk(key int) func() (*models.Article, error) {
 
 // LoadAll fetches many keys at once. It will be broken into appropriate sized
 // sub batches depending on how the loader is configured
-func (l *ArticleLoader) LoadAll(keys []int) ([]*models.Article, []error) {
-	results := make([]func() (*models.Article, error), len(keys))
+func (l *UserLoader) LoadAll(keys []int) ([]*models.User, []error) {
+	results := make([]func() (*models.User, error), len(keys))
 
 	for i, key := range keys {
 		results[i] = l.LoadThunk(key)
 	}
 
-	articles := make([]*models.Article, len(keys))
+	users := make([]*models.User, len(keys))
 	errors := make([]error, len(keys))
 	for i, thunk := range results {
-		articles[i], errors[i] = thunk()
+		users[i], errors[i] = thunk()
 	}
-	return articles, errors
+	return users, errors
 }
 
 // Prime the cache with the provided key and value. If the key already exists, no change is made
 // and false is returned.
 // (To forcefully prime the cache, clear the key first with loader.clear(key).prime(key, value).)
-func (l *ArticleLoader) Prime(key int, value *models.Article) bool {
+func (l *UserLoader) Prime(key int, value *models.User) bool {
 	l.mu.Lock()
 	var found bool
 	if _, found = l.cache[key]; !found {
@@ -145,22 +145,22 @@ func (l *ArticleLoader) Prime(key int, value *models.Article) bool {
 }
 
 // Clear the value at key from the cache, if it exists
-func (l *ArticleLoader) Clear(key int) {
+func (l *UserLoader) Clear(key int) {
 	l.mu.Lock()
 	delete(l.cache, key)
 	l.mu.Unlock()
 }
 
-func (l *ArticleLoader) unsafeSet(key int, value *models.Article) {
+func (l *UserLoader) unsafeSet(key int, value *models.User) {
 	if l.cache == nil {
-		l.cache = map[int]*models.Article{}
+		l.cache = map[int]*models.User{}
 	}
 	l.cache[key] = value
 }
 
 // keyIndex will return the location of the key in the batch, if its not found
 // it will add the key to the batch
-func (b *articleBatch) keyIndex(l *ArticleLoader, key int) int {
+func (b *userBatch) keyIndex(l *UserLoader, key int) int {
 	for i, existingKey := range b.keys {
 		if key == existingKey {
 			return i
@@ -184,7 +184,7 @@ func (b *articleBatch) keyIndex(l *ArticleLoader, key int) int {
 	return pos
 }
 
-func (b *articleBatch) startTimer(l *ArticleLoader) {
+func (b *userBatch) startTimer(l *UserLoader) {
 	time.Sleep(l.wait)
 	l.mu.Lock()
 
@@ -200,7 +200,7 @@ func (b *articleBatch) startTimer(l *ArticleLoader) {
 	b.end(l)
 }
 
-func (b *articleBatch) end(l *ArticleLoader) {
+func (b *userBatch) end(l *UserLoader) {
 	b.data, b.error = l.fetch(b.keys)
 	close(b.done)
 }

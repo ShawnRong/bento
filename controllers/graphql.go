@@ -9,11 +9,12 @@ import (
 
 // Defining the Graphql handler
 func GraphqlHandler() gin.HandlerFunc {
-	// NewExecutableSchema and Config are in the generated.go file
-	// Resolver is in the resolver.go file
-	h := handler.GraphQL(generated.NewExecutableSchema(generated.Config{
+	c := generated.Config{
 		Resolvers: &resolver.Resolver{},
-	}))
+	}
+	//@TODO implement Directives
+
+	h := handler.GraphQL(generated.NewExecutableSchema(c))
 
 	return func(c *gin.Context) {
 		h.ServeHTTP(c.Writer, c.Request)

@@ -14,6 +14,7 @@ func NewRouter() *gin.Engine {
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
 	router.Use(middlewares.AuthMiddleware())
+	router.Use(middlewares.DataLoaderMiddleware())
 
 	// Serve frontend views folder
 	router.Use(static.Serve("/", static.LocalFile("./app/build/", true)))
