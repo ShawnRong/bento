@@ -38,6 +38,9 @@ func Init() {
 	if err != nil {
 		log.Fatal("error on database connection, info: %v", err)
 	}
+
+	db.DB().SetMaxIdleConns(10)
+	db.DB().SetMaxOpenConns(100)
 }
 
 func GetDB() *gorm.DB {
@@ -45,5 +48,5 @@ func GetDB() *gorm.DB {
 }
 
 func CloseDB() {
-	db.Close()
+	defer db.Close()
 }

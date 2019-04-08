@@ -2,8 +2,10 @@ module github.com/ShawnRong/bento
 
 require (
 	cloud.google.com/go v0.37.1 // indirect
-	github.com/99designs/gqlgen v0.8.2
+	github.com/99designs/gqlgen v0.8.3
+	github.com/agnivade/levenshtein v1.0.2 // indirect
 	github.com/denisenkom/go-mssqldb v0.0.0-20190315220205-a8ed825ac853 // indirect
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/erikstmartin/go-testdb v0.0.0-20160219214506-8d10e4a1bae5 // indirect
 	github.com/gin-contrib/sse v0.0.0-20190301062529-5545eab6dad3 // indirect
 	github.com/gin-gonic/contrib v0.0.0-20190302003538-54ff787f7c73
@@ -11,6 +13,8 @@ require (
 	github.com/go-sql-driver/mysql v1.4.1 // indirect
 	github.com/gofrs/uuid v3.2.0+incompatible // indirect
 	github.com/golang/protobuf v1.3.1 // indirect
+	github.com/gorilla/websocket v1.4.0 // indirect
+	github.com/hashicorp/golang-lru v0.5.1 // indirect
 	github.com/jinzhu/gorm v1.9.2
 	github.com/jinzhu/inflection v0.0.0-20180308033659-04140366298a // indirect
 	github.com/jinzhu/now v1.0.0 // indirect
@@ -23,7 +27,9 @@ require (
 	github.com/spf13/viper v1.3.2
 	github.com/ugorji/go/codec v0.0.0-20190316192920-e2bddce071ad // indirect
 	github.com/vektah/gqlparser v1.1.2
-	golang.org/x/net v0.0.0-20190318221613-d196dffd7c2b // indirect
+	golang.org/x/crypto v0.0.0-20190404164418-38d8ce5564a5 // indirect
+	golang.org/x/net v0.0.0-20190404232315-eb5bcb51f2a3 // indirect
+	golang.org/x/sys v0.0.0-20190405154228-4b34438f7a67 // indirect
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 	gopkg.in/go-playground/validator.v8 v8.18.2 // indirect
 )

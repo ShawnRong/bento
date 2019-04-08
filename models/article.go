@@ -4,11 +4,16 @@ type Article struct {
 	Model
 	Title    string    `json: "title"`
 	Content  string    `json: "content"`
-	UserID   uint      `json: "user_id"`
+	State    bool      `json: "state"`
+	UserID   uint      `json: "user_id" gorm: "index"`
 	User     User      `json: "user"`
 	Comments []Comment `json: "comments"`
 	Tags     []*Tag    `json:"tags" gorm:"many2many:article_tags"`
 }
+
+//@TODO add gorm callback transform time into timestamp
+
+//@TODO move data select into model
 
 //func (a *Article) User() *User {
 //	var user User

@@ -14,5 +14,5 @@ type Model struct {
 }
 
 func AutoMigrate() {
-	db.GetDB().AutoMigrate(&User{}, &Article{}, &Tag{}, &Comment{})
+	db.GetDB().AutoMigrate(&User{}, &Auth{}, &Article{}, &Tag{}, &Comment{})
 }

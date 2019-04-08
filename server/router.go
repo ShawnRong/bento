@@ -13,7 +13,7 @@ func NewRouter() *gin.Engine {
 
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
-	router.Use(middlewares.AuthMiddleware())
+	//router.Use(middlewares.JWT())
 	router.Use(middlewares.DataLoaderMiddleware())
 
 	// Serve frontend views folder
@@ -26,6 +26,10 @@ func NewRouter() *gin.Engine {
 		gql.GET("/", controllers.PlaygroundHandler())
 	}
 
+	//Auth
+	router.GET("/auth", controllers.GetAuth)
+
+	//@TODO change v1 file structure
 	v1 := router.Group("v1")
 	{
 		userGroup := v1.Group("user")

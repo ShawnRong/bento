@@ -5,6 +5,7 @@ url = "bento.dev"
 email = "rongshawn@gmail.com"
 domain = ":8080"
 debug = true
+jwt = "1231231231"
 
 [db]
 host = "127.0.0.1"
