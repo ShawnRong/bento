@@ -3,6 +3,8 @@ package util
 import (
 	"time"
 
+	"github.com/ShawnRong/bento/logging"
+
 	"github.com/dgrijalva/jwt-go"
 )
 
@@ -30,6 +32,11 @@ func GenerateToken(username, password string) (string, error) {
 
 	tokenClaims := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	token, err := tokenClaims.SignedString(jwtSecret)
+
+	//integrate Log
+	if err != nil {
+		logging.Info(err.Error())
+	}
 
 	return token, err
 }
