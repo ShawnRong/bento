@@ -12,19 +12,3 @@ type User struct {
 }
 
 // @todo custom validate
-
-//func (u *User) Articles() []Article {
-//	var articles []Article
-//	if err := db.GetDB().Where("user_id = ?", u.ID).Find(&articles).Error; err != nil {
-//		return nil
-//	}
-//	return articles
-//}
-//
-//func (u *User) Comments() []Comment {
-//	var comments []Comment
-//	if err := db.GetDB().Where("user_id = ?", u.ID).Find(&comments).Error; err != nil {
-//		return nil
-//	}
-//	return comments
-//}

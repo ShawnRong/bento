@@ -13,18 +13,56 @@ import (
 	"github.com/ShawnRong/bento/models"
 )
 
-// THIS CODE IS A STARTING POINT ONLY. IT WILL NOT BE UPDATED WITH SCHEMA CHANGES.
-
 type Resolver struct{}
 
+func (r *Resolver) Article() generated.ArticleResolver {
+	return &articleResolver{r}
+}
+func (r *Resolver) Comment() generated.CommentResolver {
+	return &commentResolver{r}
+}
 func (r *Resolver) Mutation() generated.MutationResolver {
 	return &mutationResolver{r}
 }
 func (r *Resolver) Query() generated.QueryResolver {
 	return &queryResolver{r}
 }
+func (r *Resolver) Tag() generated.TagResolver {
+	return &tagResolver{r}
+}
 func (r *Resolver) User() generated.UserResolver {
 	return &userResolver{r}
+}
+
+type articleResolver struct{ *Resolver }
+
+func (r *articleResolver) User(ctx context.Context, obj *models.Article) (*models.User, error) {
+	var user models.User
+	err := db.GetDB().Where("id = ?", obj.UserID).Find(&user).Error
+	return &user, err
+}
+func (r *articleResolver) Tags(ctx context.Context, obj *models.Article) ([]models.Tag, error) {
+	var tags []models.Tag
+	err := db.GetDB().Model(obj).Related(&tags, "articles").Error
+	return tags, err
+}
+func (r *articleResolver) Comments(ctx context.Context, obj *models.Article) ([]models.Comment, error) {
+	var comments []models.Comment
+	err := db.GetDB().Where("user_id = ?", obj.ID).Find(&comments).Error
+	return comments, err
+}
+
+type commentResolver struct{ *Resolver }
+
+func (r *commentResolver) User(ctx context.Context, obj *models.Comment) (*models.User, error) {
+	var user models.User
+	err := db.GetDB().Where("id = ?", obj.UserID).Find(&user).Error
+	return &user, err
+}
+func (r *commentResolver) Article(ctx context.Context, obj *models.Comment) (*models.Article, error) {
+	var article models.Article
+	err := db.GetDB().Where("id = ?", obj.ArticleID).Find(&article).Error
+	return &article, err
 }
 
 type mutationResolver struct{ *Resolver }
@@ -218,8 +256,26 @@ func (r *queryResolver) Tags(ctx context.Context) ([]models.Tag, error) {
 	return tags, nil
 }
 
+type tagResolver struct{ *Resolver }
+
+func (r *tagResolver) Articles(ctx context.Context, obj *models.Tag) ([]models.Article, error) {
+	var articles []models.Article
+	err := db.GetDB().Model(&obj).Related(&articles, "Tags").Error
+	return articles, err
+}
+
 type userResolver struct{ *Resolver }
 
 func (r *userResolver) Active(ctx context.Context, obj *models.User) (string, error) {
 	return strconv.FormatBool(obj.Active), nil
+}
+func (r *userResolver) Articles(ctx context.Context, obj *models.User) ([]models.Article, error) {
+	var articles []models.Article
+	err := db.GetDB().Where("user_id = ?", obj.ID).Find(&articles).Error
+	return articles, err
+}
+func (r *userResolver) Comments(ctx context.Context, obj *models.User) ([]models.Comment, error) {
+	var comments []models.Comment
+	err := db.GetDB().Where("user_id = ?", obj.ID).Find(&comments).Error
+	return comments, err
 }

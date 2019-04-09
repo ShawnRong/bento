@@ -12,15 +12,37 @@ resolver:
   filename: ./graphql/resolver/resolver.go
   type: Resolver
 
+struct_tag: json
+
 models:
   User:
     model: github.com/ShawnRong/bento/models.User
+    fields:
+      articles:
+        resolver: true
+      comments:
+        resolver: true
   Tag:
     model: github.com/ShawnRong/bento/models.Tag
+    fields:
+      articles:
+        resolver: true
   Article:
     model: github.com/ShawnRong/bento/models.Article
+    fields:
+      user:
+        resolver: true
+      tags:
+        resolver: true
+      comments:
+        resolver: true
   Comment:
     model: github.com/ShawnRong/bento/models.Comment
+    fields:
+      user:
+        resolver: true
+      article:
+        resolver: true
   ID:
     model:
       - github.com/99designs/gqlgen/graphql.IntID

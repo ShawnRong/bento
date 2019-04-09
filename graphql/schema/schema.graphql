@@ -25,7 +25,7 @@ type Article {
     id: ID!
     title: String!
     content: String!
-    state: Bool!
+    state: Boolean!
     user: User!
     created_at: Time!
     updated_at: Time!
