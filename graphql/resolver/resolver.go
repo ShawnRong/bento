@@ -43,12 +43,14 @@ func (r *articleResolver) User(ctx context.Context, obj *models.Article) (*model
 }
 func (r *articleResolver) Tags(ctx context.Context, obj *models.Article) ([]models.Tag, error) {
 	var tags []models.Tag
-	err := db.GetDB().Model(obj).Related(&tags, "articles").Error
+	err := db.GetDB().Joins("join `article_tags` on `article_tags`.`tag_id` = `tags`.`id`").
+		Where("`article_tags`.`article_id` = ?", obj.ID).
+		Find(&tags).Error
 	return tags, err
 }
 func (r *articleResolver) Comments(ctx context.Context, obj *models.Article) ([]models.Comment, error) {
 	var comments []models.Comment
-	err := db.GetDB().Where("user_id = ?", obj.ID).Find(&comments).Error
+	err := db.GetDB().Where("article_id = ?", obj.ID).Find(&comments).Error
 	return comments, err
 }
 
@@ -260,7 +262,9 @@ type tagResolver struct{ *Resolver }
 
 func (r *tagResolver) Articles(ctx context.Context, obj *models.Tag) ([]models.Article, error) {
 	var articles []models.Article
-	err := db.GetDB().Model(&obj).Related(&articles, "Tags").Error
+	err := db.GetDB().Joins("join `article_tags` on `article_tags`.`article_id` = `articles`.`id`").
+		Where("`article_tags`.`tag_id` = ?", obj.ID).
+		Find(&articles).Error
 	return articles, err
 }
 

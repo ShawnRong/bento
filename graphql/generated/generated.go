@@ -682,8 +682,8 @@ var parsedSchema = gqlparser.MustLoadSchema(
     active: String!
     password: String!
     created_at: Time!
-    updated_at: Time!
-    deleted_at: Time!
+    updated_at: Time
+    deleted_at: Time
     articles: [Article!]
     comments: [Comment!]
 }
@@ -692,8 +692,8 @@ type Tag {
     id: ID!
     name: String!
     created_at: Time!
-    updated_at: Time!
-    deleted_at: Time!
+    updated_at: Time
+    deleted_at: Time
     articles: [Article!]!
 }
 
@@ -704,8 +704,8 @@ type Article {
     state: Boolean!
     user: User!
     created_at: Time!
-    updated_at: Time!
-    deleted_at: Time!
+    updated_at: Time
+    deleted_at: Time
     tags: [Tag!]!
     comments: [Comment!]
 }
@@ -715,8 +715,8 @@ type Comment {
    content: String!
    user: User!
    created_at: Time!
-   updated_at: Time!
-   deleted_at: Time!
+   updated_at: Time
+   deleted_at: Time
    article: Article!
 }
 
@@ -1256,15 +1256,12 @@ func (ec *executionContext) _Article_updated_at(ctx context.Context, field graph
 		return obj.UpdatedAt, nil
 	})
 	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(time.Time)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Article_deleted_at(ctx context.Context, field graphql.CollectedField, obj *models.Article) graphql.Marshaler {
@@ -1283,15 +1280,12 @@ func (ec *executionContext) _Article_deleted_at(ctx context.Context, field graph
 		return obj.DeletedAt, nil
 	})
 	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(*time.Time)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNTime2ᚖtimeᚐTime(ctx, field.Selections, res)
+	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Article_tags(ctx context.Context, field graphql.CollectedField, obj *models.Article) graphql.Marshaler {
@@ -1469,15 +1463,12 @@ func (ec *executionContext) _Comment_updated_at(ctx context.Context, field graph
 		return obj.UpdatedAt, nil
 	})
 	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(time.Time)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Comment_deleted_at(ctx context.Context, field graphql.CollectedField, obj *models.Comment) graphql.Marshaler {
@@ -1496,15 +1487,12 @@ func (ec *executionContext) _Comment_deleted_at(ctx context.Context, field graph
 		return obj.DeletedAt, nil
 	})
 	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(*time.Time)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNTime2ᚖtimeᚐTime(ctx, field.Selections, res)
+	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Comment_article(ctx context.Context, field graphql.CollectedField, obj *models.Comment) graphql.Marshaler {
@@ -2190,15 +2178,12 @@ func (ec *executionContext) _Tag_updated_at(ctx context.Context, field graphql.C
 		return obj.UpdatedAt, nil
 	})
 	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(time.Time)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Tag_deleted_at(ctx context.Context, field graphql.CollectedField, obj *models.Tag) graphql.Marshaler {
@@ -2217,15 +2202,12 @@ func (ec *executionContext) _Tag_deleted_at(ctx context.Context, field graphql.C
 		return obj.DeletedAt, nil
 	})
 	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(*time.Time)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNTime2ᚖtimeᚐTime(ctx, field.Selections, res)
+	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Tag_articles(ctx context.Context, field graphql.CollectedField, obj *models.Tag) graphql.Marshaler {
@@ -2460,15 +2442,12 @@ func (ec *executionContext) _User_updated_at(ctx context.Context, field graphql.
 		return obj.UpdatedAt, nil
 	})
 	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(time.Time)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _User_deleted_at(ctx context.Context, field graphql.CollectedField, obj *models.User) graphql.Marshaler {
@@ -2487,15 +2466,12 @@ func (ec *executionContext) _User_deleted_at(ctx context.Context, field graphql.
 		return obj.DeletedAt, nil
 	})
 	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(*time.Time)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNTime2ᚖtimeᚐTime(ctx, field.Selections, res)
+	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _User_articles(ctx context.Context, field graphql.CollectedField, obj *models.User) graphql.Marshaler {
@@ -3683,14 +3659,8 @@ func (ec *executionContext) _Article(ctx context.Context, sel ast.SelectionSet, 
 			}
 		case "updated_at":
 			out.Values[i] = ec._Article_updated_at(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalid = true
-			}
 		case "deleted_at":
 			out.Values[i] = ec._Article_deleted_at(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalid = true
-			}
 		case "tags":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -3769,14 +3739,8 @@ func (ec *executionContext) _Comment(ctx context.Context, sel ast.SelectionSet, 
 			}
 		case "updated_at":
 			out.Values[i] = ec._Comment_updated_at(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalid = true
-			}
 		case "deleted_at":
 			out.Values[i] = ec._Comment_deleted_at(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalid = true
-			}
 		case "article":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -3978,14 +3942,8 @@ func (ec *executionContext) _Tag(ctx context.Context, sel ast.SelectionSet, obj 
 			}
 		case "updated_at":
 			out.Values[i] = ec._Tag_updated_at(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalid = true
-			}
 		case "deleted_at":
 			out.Values[i] = ec._Tag_deleted_at(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalid = true
-			}
 		case "articles":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -4068,14 +4026,8 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			}
 		case "updated_at":
 			out.Values[i] = ec._User_updated_at(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalid = true
-			}
 		case "deleted_at":
 			out.Values[i] = ec._User_deleted_at(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalid = true
-			}
 		case "articles":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -4510,24 +4462,6 @@ func (ec *executionContext) marshalNTime2timeᚐTime(ctx context.Context, sel as
 		return graphql.Null
 	}
 	return graphql.MarshalTime(v)
-}
-
-func (ec *executionContext) unmarshalNTime2ᚖtimeᚐTime(ctx context.Context, v interface{}) (*time.Time, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalNTime2timeᚐTime(ctx, v)
-	return &res, err
-}
-
-func (ec *executionContext) marshalNTime2ᚖtimeᚐTime(ctx context.Context, sel ast.SelectionSet, v *time.Time) graphql.Marshaler {
-	if v == nil {
-		if !ec.HasError(graphql.GetResolverContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	return ec.marshalNTime2timeᚐTime(ctx, sel, *v)
 }
 
 func (ec *executionContext) unmarshalNUpdateArticle2githubᚗcomᚋShawnRongᚋbentoᚋmodelsᚐUpdateArticle(ctx context.Context, v interface{}) (models.UpdateArticle, error) {
@@ -5078,6 +5012,32 @@ func (ec *executionContext) marshalOTag2ᚖgithubᚗcomᚋShawnRongᚋbentoᚋmo
 		return graphql.Null
 	}
 	return ec._Tag(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOTime2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {
+	return graphql.UnmarshalTime(v)
+}
+
+func (ec *executionContext) marshalOTime2timeᚐTime(ctx context.Context, sel ast.SelectionSet, v time.Time) graphql.Marshaler {
+	if v.IsZero() {
+		return graphql.Null
+	}
+	return graphql.MarshalTime(v)
+}
+
+func (ec *executionContext) unmarshalOTime2ᚖtimeᚐTime(ctx context.Context, v interface{}) (*time.Time, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOTime2timeᚐTime(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) marshalOTime2ᚖtimeᚐTime(ctx context.Context, sel ast.SelectionSet, v *time.Time) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec.marshalOTime2timeᚐTime(ctx, sel, *v)
 }
 
 func (ec *executionContext) marshalOUser2githubᚗcomᚋShawnRongᚋbentoᚋmodelsᚐUser(ctx context.Context, sel ast.SelectionSet, v models.User) graphql.Marshaler {

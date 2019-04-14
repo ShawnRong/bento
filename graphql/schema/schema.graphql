@@ -6,8 +6,8 @@ type User {
     active: String!
     password: String!
     created_at: Time!
-    updated_at: Time!
-    deleted_at: Time!
+    updated_at: Time
+    deleted_at: Time
     articles: [Article!]
     comments: [Comment!]
 }
@@ -16,8 +16,8 @@ type Tag {
     id: ID!
     name: String!
     created_at: Time!
-    updated_at: Time!
-    deleted_at: Time!
+    updated_at: Time
+    deleted_at: Time
     articles: [Article!]!
 }
 
@@ -28,8 +28,8 @@ type Article {
     state: Boolean!
     user: User!
     created_at: Time!
-    updated_at: Time!
-    deleted_at: Time!
+    updated_at: Time
+    deleted_at: Time
     tags: [Tag!]!
     comments: [Comment!]
 }
@@ -39,8 +39,8 @@ type Comment {
    content: String!
    user: User!
    created_at: Time!
-   updated_at: Time!
-   deleted_at: Time!
+   updated_at: Time
+   deleted_at: Time
    article: Article!
 }
 
